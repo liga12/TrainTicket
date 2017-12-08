@@ -28,6 +28,6 @@ public class Train implements Serializable {
     private List<TrainWay> trainWays;
 
     public Train(String name) {
-        this.name = name;
+        this.name = name.toLowerCase();
     }
 }

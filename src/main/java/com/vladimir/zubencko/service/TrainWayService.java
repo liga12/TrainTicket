@@ -12,4 +12,12 @@ public interface TrainWayService {
                       List<Integer> stoppingHour,List<Integer> stoppingMinute, List<Integer> cost);
     List<Integer> addTimeToCollection(List<String> list, String time);
     List<Integer> isCorrectCost(List<String> costs);
+    List<List<Integer>> isCorrectTime(List<String> departureHours, List<String> departureMinutes,
+                          List<String> stoppingHours,List<String> stoppingMinutes);
+    List<String> isCorrectWay(List<String> cities);
+    String isOmit(List<String> cities);
+    String checkWay(String trainName, List<String> cities);
+    List<Object> checkTimeAndCoast(List<String> departureHours, List<String> departureMinutes,
+                                   List<String> stoppingHours, List<String> stoppingMinutes,
+                                   List<String> costs);
 }
