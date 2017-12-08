@@ -1,0 +1,70 @@
+.col-md-12{
+    background: border-box;
+}
+.error{
+    color: red;
+}
+
+body{
+    background: url("/static/image/train.jpg");
+    background-size: cover;
+}
+.button-main{
+    /*width: 100%;*/
+    border-radius: 4px;
+    width: 100%;
+    height: 33px;
+    border: solid 1px gray ;
+    background-color: aqua;
+    color:  #343434;
+}
+
+.button-option{
+    /*width: 100%;*/
+    border-radius: 4px;
+    width: 100%;
+    height: 33px;
+    border: solid 1px gray ;
+    background-color: darkgrey;
+    color:  #343434;
+}
+
+.col-md-4{
+    text-decoration: none;
+    /*color: #343434;*/
+}
+
+.indent{
+    height: 15px;
+}
+
+.indent-small{
+    height: 5px;
+}
+
+h4, h5{
+    text-align: center;
+}
+
+.text-blue{
+    color: blue;
+}
+
+.navbar-inverse{
+    border-radius: inherit;
+}
+
+.add-city{
+    padding: inherit;
+}
+
+.form-control{
+    margin-bottom: 5px;
+    border: solid 1px gray;
+}
+
+.search-city-name{
+    text-align: center;
+    text-align-last:center;
+    background: white;
+}
