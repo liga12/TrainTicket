@@ -10,4 +10,5 @@ public interface NeighborCityService {
     void saveEditNeighbors(City city, List<String> neighborCities);
     void saveNeighbors(City city, List<String> neighborCities);
     boolean isEqual(List<String> neighborCities);
+    String checkNeighbors(List<String> neighborCities, String cityName);
 }

@@ -38,6 +38,6 @@ public class City implements Serializable {
 
 
     public City(String name) {
-        this.name = name;
+        this.name = name.toLowerCase();
     }
 }

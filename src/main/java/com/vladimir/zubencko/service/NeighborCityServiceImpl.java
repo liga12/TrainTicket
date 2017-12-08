@@ -83,7 +83,7 @@ public class NeighborCityServiceImpl implements NeighborCityService {
         }
 
     }
-    
+
     @Override
     public  boolean isEqual(List<String> neighborCities){
         for (int i = 0; i < neighborCities.size(); i++) {
@@ -102,6 +102,29 @@ public class NeighborCityServiceImpl implements NeighborCityService {
             }
         }
         return false;
+    }
+
+    @Override
+    public String checkNeighbors(List<String> neighborCities, String cityName){
+        for (int i = 0; i < neighborCities.size(); i++) {
+            if (neighborCities.get(i).equals("None")) {
+                continue;
+            } else {
+                for (int j = 0; j < neighborCities.size(); j++) {
+                    if (cityName.equals(neighborCities.get(i))) {
+                        return "Neighbor city is equals city";
+                    }
+                    if (j == i) {
+                        continue;
+                    } else {
+                        if (neighborCities.get(i).equals(neighborCities.get(j))) {
+                            return "Neighbor cities is equals";
+                        }
+                    }
+                }
+            }
+        }
+        return "OK";
     }
 
 }

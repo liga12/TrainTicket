@@ -71,14 +71,14 @@ public class CityController {
         if (cityName!=null&&!cityName.equals("")) {
             if (!cityService.existsByName(cityName)) {
                 if (neighborCities != null) {
-                    boolean check = neighborCityService.isEqual(neighborCities);
-                    if (check) {
+                    boolean result = neighborCityService.isEqual(neighborCities);
+                    if (result) {
                         redirectAttributes.addAttribute("error", "Neighbor cities is equals");
                         return "redirect:/admin/home";
                     }
                 } else {
                     redirectAttributes.addAttribute("error", "Neighbor cities is empty");
-                    return "redirect:/admin/home";  
+                    return "redirect:/admin/home";
                 }
             } else {
                 redirectAttributes.addAttribute("error", "City is exist");
@@ -88,7 +88,7 @@ public class CityController {
             redirectAttributes.addAttribute("error", "City is empty");
             return "redirect:/admin/home";
         }
-        City city = new City(cityName.toLowerCase());
+        City city = new City(cityName);
         cityService.save(city);
         neighborCityService.saveNeighbors(city, neighborCities);
         return "redirect:/admin/home";
@@ -123,8 +123,7 @@ public class CityController {
 
     @GetMapping("editCity")
     public String editCity(@RequestParam(value = "name") String name,
-                           RedirectAttributes redirectAttributes) {
-        if (name!=null&&!name.equals("")) {
+                           RedirectAttributes redirectAttributes) {        if (name!=null&&!name.equals("")) {
             redirectAttributes.addAttribute("cityName", name);
         }
         return "redirect:/admin/home";
@@ -136,7 +135,7 @@ public class CityController {
                                @RequestParam(value = "neighborCityEdit") List<String> neighborCities,
                                RedirectAttributes redirectAttributes) {
         if (cityName!=null&&!cityName.equals("")) {
-            boolean equalsCity = true;
+            boolean equalsCity;
             if (cityOriginal!=null){
                 if (cityName.equals(cityOriginal)) {
                     equalsCity = false;
@@ -144,30 +143,14 @@ public class CityController {
                     equalsCity = cityService.existsByName(cityName);
                 }
             }else {
-                return "redirect:/admin/home";  
+                return "redirect:/admin/home";
             }
-            
             if (!equalsCity) {
                 if (neighborCities != null) {
-                    for (int i = 0; i < neighborCities.size(); i++) {
-                        if (neighborCities.get(i).equals("None")) {
-                            continue;
-                        } else {
-                            for (int j = 0; j < neighborCities.size(); j++) {
-                                if (cityName.equals(neighborCities.get(i))) {
-                                    redirectAttributes.addAttribute("errorEdit", "Neighbor cities is equals city");
-                                    return "redirect:/admin/home";
-                                }
-                                if (j == i) {
-                                    continue;
-                                } else {
-                                    if (neighborCities.get(i).equals(neighborCities.get(j))) {
-                                        redirectAttributes.addAttribute("errorEdit", "Neighbor cities is equals");
-                                        return "redirect:/admin/home";
-                                    }
-                                }
-                            }
-                        }
+                    String result = neighborCityService.checkNeighbors(neighborCities, cityName);
+                    if (!result.equals("OK")){
+                        redirectAttributes.addAttribute("errorEdit", result);
+                        return "redirect:/admin/home";
                     }
                 } else {
                     redirectAttributes.addAttribute("errorEdit", "City is exist");
