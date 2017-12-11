@@ -32,12 +32,22 @@ public class TrainController {
     }
 
     @GetMapping("train")
-    public ModelAndView home(@RequestParam(value = "error", required = false) String error) {
+    public ModelAndView home(@RequestParam(value = "error", required = false) String error,
+                             @RequestParam(value = "searchTrains", required = false) String searchTrains,
+                             @RequestParam(value = "searchAll", required = false) String searchAll) {
         ModelAndView modelAndView = new ModelAndView("adminTrain");
         List<City> cities = cityService.getCities();
         if (!cities.isEmpty()) {
             modelAndView.addObject("cities", cities);
             modelAndView.addObject("error", error);
+        }
+        if (searchTrains != null) {
+            List<Train> trainsSearch = trainService.searchByBitName(searchTrains);
+            modelAndView.addObject("searchTrains", trainsSearch);
+        }
+        if (searchAll != null) {
+            List<Train> trainsSearch = trainService.getAll();
+            modelAndView.addObject("searchTrains", trainsSearch);
         }
         return modelAndView;
     }
@@ -80,6 +90,33 @@ public class TrainController {
         Train train = new Train(trainName);
         trainService.save(train);
         trainWayService.saveTrainWay(train, cities, departureHour, departureMinute, stoppingHour, stoppingMinute, cost);
+        return "redirect:/admin/train";
+    }
+
+    @PostMapping("searchTrain")
+    public String searchCity(@RequestParam(value = "train") String trainName,
+                             @RequestParam(value = "search", required = false) String search,
+                             @RequestParam(value = "searchAll", required = false) String searchAll,
+                             RedirectAttributes redirectAttributes) {
+        if (trainName!=null&&!trainName.equals("")) {
+            if (search != null) {
+                redirectAttributes.addAttribute("searchTrains", trainName);
+            }
+        }
+        if (searchAll != null) {
+            redirectAttributes.addAttribute("searchAll", "searchAll");
+        }
+        return "redirect:/admin/train";
+    }
+
+    @GetMapping("deleteTrain")
+    public String deleteCity(@RequestParam(value = "name") String name) {
+        if (name!=null&&!name.equals("")) {
+            Train train = trainService.searchByFullName(name);
+            if (train != null) {
+                trainService.delete(train);
+            }
+        }
         return "redirect:/admin/train";
     }
 }

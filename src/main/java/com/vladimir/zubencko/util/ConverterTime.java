@@ -1,4 +1,4 @@
-package com.vladimir.zubencko;
+package com.vladimir.zubencko.util;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

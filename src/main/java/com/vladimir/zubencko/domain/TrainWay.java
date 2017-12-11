@@ -1,6 +1,6 @@
 package com.vladimir.zubencko.domain;
 
-import com.vladimir.zubencko.ConverterTime;
+import com.vladimir.zubencko.util.ConverterTime;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j;

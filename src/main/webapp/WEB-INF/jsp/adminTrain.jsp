@@ -14,18 +14,18 @@
                 <jsp:include page="adminAddTrain.jsp"/>
             </div>
         </div>
-        <%--<div class="col-md-4">--%>
-            <%--<div class="col-md-12">--%>
-                <%--<jsp:include page="adminCitySeach.jsp"/>--%>
-            <%--</div>--%>
-        <%--</div>--%>
-        <%--<div class="col-md-4">--%>
-            <%--<div class="col-md-12">--%>
-                <%--<c:if test="${requestScope.cityName!=null}">--%>
-                    <%--<jsp:include page="adminCityEdit.jsp"/>--%>
-                <%--</c:if>--%>
-            <%--</div>--%>
-        <%--</div>--%>
+        <div class="col-md-4">
+            <div class="col-md-12">
+                <jsp:include page="adminTrainSeach.jsp"/>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="col-md-12">
+                <c:if test="${requestScope.trainName!=null}">
+                    <jsp:include page="adminCityEdit.jsp"/>
+                </c:if>
+            </div>
+        </div>
     </div>
 </div>
 </body>
