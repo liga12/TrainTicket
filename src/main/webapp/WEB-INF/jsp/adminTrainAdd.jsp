@@ -50,7 +50,7 @@
             '</c:forEach>');
     }
 </script>
-<form action="/admin/addTrain" method="post">
+<form action="/admin/addTrain" method="post" >
     <div class="error">
         <h4><c:out value="${requestScope.error}"/></h4>
     </div>

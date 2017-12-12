@@ -6,8 +6,10 @@
 }
 
 body{
-    background: url("/static/image/train.jpg");
+    background-image: url("/static/image/train.jpg");
     background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 .button-main{
     /*width: 100%;*/

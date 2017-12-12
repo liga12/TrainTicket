@@ -26,10 +26,15 @@ public class TrainWayServiceImpl implements TrainWayService {
     }
 
     @Override
+    public void delete(TrainWay trainWay) {
+        trainWayRepository.delete(trainWay);
+    }
+
+    @Override
     public void saveTrainWay(Train train, List<String> cities, List<Integer> arrivalHour, List<Integer> arrivalMinute, List<Integer> stoppingHours, List<Integer> stoppingMinute, List<Integer> coast) {
         for (int i = 0; i < cities.size(); i++) {
             String cityName = cities.get(i);
-            if (!cityName.equals("None") && coast.get(i) != null) {
+            if (!"None".equals(cityName) && coast.get(i) != null) {
                 City city = cityService.searchByFullName(cityName);
                 if (city != null) {
                     TrainWay trainWay = new TrainWay(train, city,
@@ -97,7 +102,7 @@ public class TrainWayServiceImpl implements TrainWayService {
         List<Integer> list = new ArrayList<>();
         try {
             for (String currentCost : costs) {
-                if (currentCost.equals("")) {
+                if ("".equals(currentCost)) {
                     currentCost = "0";
                 }
                 int cost = Integer.valueOf(currentCost);
@@ -118,7 +123,7 @@ public class TrainWayServiceImpl implements TrainWayService {
         List<String> list = new ArrayList<>();
         int sumEmptyCities = 0;
         for (int i = 0; i < cities.size(); i++) {
-            if (cities.get(i).equals("None")) {
+            if ("None".equals(cities.get(i))) {
                 sumEmptyCities++;
             } else {
                 if (i != cities.size() - 1 && !cities.get(i + 1).equals("None")) {
@@ -155,7 +160,7 @@ public class TrainWayServiceImpl implements TrainWayService {
         boolean none = false;
         boolean noNone = true;
         for (int i = 0; i < cities.size(); i++) {
-            if (cities.get(i).equals("None")) {
+            if ("None".equals(cities.get(i))) {
                 if (!none) {
                     return "City in the way is omitted";
                 }
@@ -181,8 +186,12 @@ public class TrainWayServiceImpl implements TrainWayService {
     }
 
     @Override
-    public String checkWay(String trainName, List<String> cities) {
-        if (!trainService.existsByName(trainName)) {
+    public String checkWay(String trainName, List<String> cities, boolean checkExistsByName) {
+        boolean correct = true;
+        if (checkExistsByName) {
+            correct = !trainService.existsByName(trainName);
+        }
+        if (correct) {
             if (cities == null) {
                 return "Cities is empty";
             }
@@ -239,6 +248,104 @@ public class TrainWayServiceImpl implements TrainWayService {
         list.add(result.get(3));
         list.add(cost);
         return list;
+    }
+
+    @Override
+    public List<Object> checkTrainWay(String trainName, List<String> cities, List<String> departureHours,
+                                      List<String> departureMinutes, List<String> stoppingHours,
+                                      List<String> stoppingMinutes, List<String> costs, boolean checkExistsByName) {
+        List<Object> objects = new ArrayList<>();
+        if (!"".equals(trainName)) {
+            String result = checkWay(trainName, cities, checkExistsByName);
+            if (!result.equals("OK")) {
+                objects.add(result);
+                return objects;
+            }
+        } else {
+            objects.add("Train is empty");
+            return objects;
+        }
+        List<Integer> departureHour;
+        List<Integer> departureMinute;
+        List<Integer> stoppingHour;
+        List<Integer> stoppingMinute;
+        List<Integer> cost;
+        List<Object> list = checkTimeAndCoast
+                (departureHours, departureMinutes, stoppingHours, stoppingMinutes, costs);
+        if (list.size() == 1) {
+            objects.add(list.get(0));
+            return objects;
+        }
+        departureHour = (List<Integer>) list.get(0);
+        departureMinute = (List<Integer>) list.get(1);
+        stoppingHour = (List<Integer>) list.get(2);
+        stoppingMinute = (List<Integer>) list.get(3);
+        cost = (List<Integer>) list.get(4);
+        objects.add(departureHour);
+        objects.add(departureMinute);
+        objects.add(stoppingHour);
+        objects.add(stoppingMinute);
+        objects.add(cost);
+        return objects;
+    }
+
+    @Override
+    public String saveChanges(List<String> cities, List<Integer> departureHour, List<Integer> departureMinute,
+                              List<Integer> stoppingHour, List<Integer> stoppingMinute, List<Integer> cost,
+                              Train train) {
+        for (int i = 0; i < cities.size(); i++) {
+            String city = cities.get(i);
+            if ("None".equals(city)) {
+                continue;
+            }
+            City currentCity = cityService.searchByFullName(city);
+            if (currentCity == null) {
+                return "Not correct data";
+            }
+            boolean needSave = true;
+
+            for (TrainWay trainWay : train.getTrainWays()) {
+                if (currentCity.equals(trainWay.getCity())) {
+                    trainWay.setTrainDeparture(getTime(i, departureHour, departureMinute));
+                    trainWay.setTrainStoppingTime(getTime(i, stoppingHour, stoppingMinute));
+                    trainWay.setCost(cost.get(i));
+                    save(trainWay);
+                    needSave = false;
+                    break;
+                }
+            }
+            if (needSave) {
+                LocalTime departureTime = getTime(i, departureHour, departureMinute);
+                LocalTime stoppingTime = getTime(i, stoppingHour, stoppingMinute);
+                TrainWay trainWay1 = new TrainWay(train, currentCity, departureTime, stoppingTime, cost.get(i));
+                save(trainWay1);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void deleteOldTrailWay(Train train, List<String> cities) {
+        for (TrainWay trainWay : train.getTrainWays()) {
+            boolean needDelete = true;
+            for (String s : cities) {
+                City city1 = cityService.searchByFullName(s);
+                if (city1 != null) {
+                    if (trainWay.getCity().equals(city1)) {
+                        needDelete = false;
+                        break;
+                    }
+                }
+            }
+            if (needDelete) {
+                delete(trainWay);
+            }
+        }
+    }
+
+    @Override
+    public LocalTime getTime(int index, List<Integer> hours, List<Integer> minutes) {
+        return LocalTime.now().withHour(hours.get(index)).withMinute(minutes.get(index));
     }
 
 }

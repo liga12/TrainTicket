@@ -11,7 +11,7 @@
     <div class="row">
         <div class="col-md-4">
             <div class="col-md-12">
-                <jsp:include page="adminAddTrain.jsp"/>
+                <jsp:include page="adminTrainAdd.jsp"/>
             </div>
         </div>
         <div class="col-md-4">
@@ -22,7 +22,12 @@
         <div class="col-md-4">
             <div class="col-md-12">
                 <c:if test="${requestScope.trainName!=null}">
-                    <jsp:include page="adminCityEdit.jsp"/>
+                    <jsp:include page="adminTrainEdit.jsp"/>
+                </c:if>
+                <c:if test="${requestScope.errorEdit!=null}">
+                    <div class="error">
+                        <h4><c:out value="${requestScope.errorEdit}"/></h4>
+                    </div>
                 </c:if>
             </div>
         </div>

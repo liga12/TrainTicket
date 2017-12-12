@@ -162,8 +162,12 @@ public class CityController {
             redirectAttributes.addAttribute("errorEdit", "City is empty");
             return "redirect:/admin/home";
         }
-        City city1 = cityService.searchByFullName(cityOriginal.toLowerCase());
-        city1.setName(cityName.toLowerCase());
+        City city1 = cityService.searchByFullName(cityOriginal);
+        if (city1==null){
+            redirectAttributes.addAttribute("errorEdit", "Not correct data");
+            return "redirect:/admin/home";
+        }
+        city1.setName(cityName);
         neighborCityService.saveEditNeighbors(city1, neighborCities);
         return "redirect:/admin/home";
     }

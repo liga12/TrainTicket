@@ -24,7 +24,7 @@ public class Train implements Serializable {
     private String name;
 
     @OneToMany(fetch = FetchType.LAZY,
-            mappedBy = "train", cascade = CascadeType.ALL)
+            mappedBy = "train")
     private List<TrainWay> trainWays;
 
     public Train(String name) {
