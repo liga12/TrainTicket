@@ -28,11 +28,11 @@ public class City implements Serializable {
     private List<NeighborCity> cities;
 
     @OneToMany(fetch = FetchType.LAZY,
-            mappedBy = "city",  orphanRemoval = true)
+            mappedBy = "city")
     private List<NeighborCity> neighborCities;
 
     @OneToMany(fetch = FetchType.LAZY,
-            mappedBy = "city", cascade = CascadeType.ALL)
+            mappedBy = "city")
     private List<TrainWay> trainWays;
 
 

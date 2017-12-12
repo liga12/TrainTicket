@@ -1,9 +1,10 @@
 package com.vladimir.zubencko.controller.admin;
 
-import com.vladimir.zubencko.domain.City;
-import com.vladimir.zubencko.domain.NeighborCity;
+import com.vladimir.zubencko.domain.*;
 import com.vladimir.zubencko.service.CityService;
 import com.vladimir.zubencko.service.NeighborCityService;
+import com.vladimir.zubencko.service.TrainService;
+import com.vladimir.zubencko.service.TrainWayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,19 +14,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
 @RequestMapping("admin")
 public class CityController {
-    private final
-    CityService cityService;
+
+    private final CityService cityService;
     private final NeighborCityService neighborCityService;
+    private final TrainWayService trainWayService;
+    private final TrainService trainService;
 
     @Autowired
-    public CityController(CityService cityService, NeighborCityService neighborCityService) {
+    public CityController(CityService cityService, NeighborCityService neighborCityService,
+                          TrainWayService trainWayService, TrainService trainService) {
         this.cityService = cityService;
         this.neighborCityService = neighborCityService;
+        this.trainWayService = trainWayService;
+        this.trainService = trainService;
+
     }
 
     @GetMapping("home")
@@ -68,7 +76,10 @@ public class CityController {
     public String addCity(@RequestParam(value = "city", required = false) String cityName,
                           @RequestParam(value = "neighborCity") List<String> neighborCities,
                           RedirectAttributes redirectAttributes) {
-        if (cityName != null && !cityName.equals("")) {
+        int a=0;
+        a++;
+
+        if (!"".equals(cityName)) {
             if (!cityService.existsByName(cityName)) {
                 if (neighborCities != null) {
                     boolean result = neighborCityService.isEqual(neighborCities);
@@ -99,7 +110,7 @@ public class CityController {
                              @RequestParam(value = "search", required = false) String search,
                              @RequestParam(value = "searchAll", required = false) String searchAll,
                              RedirectAttributes redirectAttributes) {
-        if (cityName != null && !cityName.equals("")) {
+        if (!"".equals(cityName)) {
             if (search != null) {
                 redirectAttributes.addAttribute("searchCities", cityName);
             }
@@ -111,20 +122,58 @@ public class CityController {
     }
 
     @GetMapping("deleteCity")
-    public String deleteCity(@RequestParam(value = "name") String name) {
-        if (name != null && !name.equals("")) {
+    public String deleteCity(@RequestParam(value = "name") String name,
+                             @RequestParam(value = "delete", required = false) String delete,
+                             RedirectAttributes redirectAttributes) {
+        if (!"".equals(name)) {
             City city = cityService.searchByFullName(name);
             if (city != null) {
-                cityService.delete(city);
+                List<TrainWay> trainWays = trainWayService.searchByCity(city);
+                List<Train> trains = cityService.getCityLink(city,trainWays);
+                if (delete!=null||trains.isEmpty()){
+                    cityService.deleteCityLink(city,trainWays,trains);
+                }else {
+                    List<String> nameTrains = new ArrayList<>();
+                    for (Train train : trains) {
+                        nameTrains.add(train.getName());
+                    }
+                    redirectAttributes.addAttribute("city", name);
+                    redirectAttributes.addAttribute("nameTrains", nameTrains);
+                    return "redirect:/admin/checkDelete";
+                }
             }
         }
         return "redirect:/admin/home";
     }
 
+    @GetMapping("checkDelete")
+    public ModelAndView checkDelete(@RequestParam(value = "city") String city,
+                                    @RequestParam(value = "nameTrains") List<String> trains){
+        ModelAndView modelAndView = new ModelAndView("deleteCity");
+        if (city!=null&&trains!=null){
+            if (!trains.isEmpty()){
+                List<Train> trains1 = new ArrayList<>();
+                for (String trainName : trains) {
+                    Train train = trainService.searchByFullName(trainName);
+                    if (train!=null){
+                        trains1.add(train);
+                    }
+                }
+
+                modelAndView.addObject("city", city);
+                modelAndView.addObject("trains", trains1);
+            }
+
+        }
+        return modelAndView;
+
+    }
+
+
     @GetMapping("editCity")
     public String editCity(@RequestParam(value = "name") String name,
                            RedirectAttributes redirectAttributes) {
-        if (name != null && !name.equals("")) {
+        if (!"".equals(name)) {
             redirectAttributes.addAttribute("cityName", name);
         }
         return "redirect:/admin/home";
@@ -135,7 +184,7 @@ public class CityController {
                                @RequestParam(value = "cityOriginal") String cityOriginal,
                                @RequestParam(value = "neighborCityEdit") List<String> neighborCities,
                                RedirectAttributes redirectAttributes) {
-        if (cityName != null && !cityName.equals("")) {
+        if (!"".equals(cityName)) {
             boolean equalsCity;
             if (cityOriginal != null) {
                 if (cityName.equals(cityOriginal)) {
@@ -163,7 +212,7 @@ public class CityController {
             return "redirect:/admin/home";
         }
         City city1 = cityService.searchByFullName(cityOriginal);
-        if (city1==null){
+        if (city1 == null) {
             redirectAttributes.addAttribute("errorEdit", "Not correct data");
             return "redirect:/admin/home";
         }

@@ -23,9 +23,17 @@ public class NeighborCityServiceImpl implements NeighborCityService {
     public void save(NeighborCity neighborCity) {
         neighborRepository.saveAndFlush(neighborCity);
     }
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+
+    @Override
+    @Transactional
     public void delete(NeighborCity neighborCity){
         neighborRepository.delete(neighborCity);
+    }
+
+    @Override
+    @Transactional
+    public void delete(List<NeighborCity> neighborCities) {
+        neighborRepository.delete(neighborCities);
     }
 
     @Override

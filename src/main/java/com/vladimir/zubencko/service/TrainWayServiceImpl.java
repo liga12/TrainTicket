@@ -3,6 +3,7 @@ package com.vladimir.zubencko.service;
 import com.vladimir.zubencko.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -21,13 +22,21 @@ public class TrainWayServiceImpl implements TrainWayService {
     CityService cityService;
 
     @Override
+    @Transactional
     public void save(TrainWay trainWay) {
         trainWayRepository.saveAndFlush(trainWay);
     }
 
     @Override
+    @Transactional
     public void delete(TrainWay trainWay) {
         trainWayRepository.delete(trainWay);
+    }
+
+    @Override
+    @Transactional
+    public void delete(List<TrainWay> trainWays) {
+        trainWayRepository.delete(trainWays);
     }
 
     @Override
@@ -348,5 +357,9 @@ public class TrainWayServiceImpl implements TrainWayService {
         return LocalTime.now().withHour(hours.get(index)).withMinute(minutes.get(index));
     }
 
+    @Override
+    public List<TrainWay> searchByCity(City city) {
+        return trainWayRepository.findByCity(city);
+    }
 }
 

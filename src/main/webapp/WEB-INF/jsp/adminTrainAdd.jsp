@@ -105,7 +105,7 @@
             </c:forEach>
         </div>
     </c:forEach>
-    <input class="form-control button-main" type="submit" name="save" value="Save">
     <input class="form-control button-option" type="button" value="Add" onclick="addTrainWay()">
+    <input class="form-control button-main" type="submit" name="save" value="Save">
 </form>
 

@@ -116,7 +116,7 @@ public class TrainController {
 
     @GetMapping("deleteTrain")
     public String deleteCity(@RequestParam(value = "name") String name) {
-        if (name != null && !name.equals("")) {
+        if (!"".equals(name)) {
             Train train = trainService.searchByFullName(name);
             if (train != null) {
                 trainService.delete(train);

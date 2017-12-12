@@ -5,6 +5,7 @@ import com.vladimir.zubencko.domain.Train;
 import com.vladimir.zubencko.domain.TrainRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @Transactional
     public void save(Train train) {
         trainRepository.saveAndFlush(train);
     }
@@ -31,8 +33,15 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @Transactional
     public void delete(Train train) {
         trainRepository.delete(train);
+    }
+
+    @Override
+    @Transactional
+    public void delete(List<Train> trains) {
+        trainRepository.delete(trains);
     }
 
     @Override

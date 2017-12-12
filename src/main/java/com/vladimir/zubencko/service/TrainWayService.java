@@ -1,5 +1,6 @@
 package com.vladimir.zubencko.service;
 
+import com.vladimir.zubencko.domain.City;
 import com.vladimir.zubencko.domain.Train;
 import com.vladimir.zubencko.domain.TrainWay;
 
@@ -9,6 +10,7 @@ import java.util.List;
 public interface TrainWayService {
     void save(TrainWay trainWay);
     void delete(TrainWay trainWay);
+    void delete(List<TrainWay> trainWays);
     void saveTrainWay(Train train, List<String> cities,
                       List<Integer> departureHour, List<Integer> departureMinute,
                       List<Integer> stoppingHour,List<Integer> stoppingMinute, List<Integer> cost);
@@ -30,4 +32,5 @@ public interface TrainWayService {
                         Train train);
     LocalTime getTime(int index, List<Integer> hours, List<Integer> minutes);
     void deleteOldTrailWay( Train train, List<String> cities);
+    List<TrainWay> searchByCity(City city);
 }
