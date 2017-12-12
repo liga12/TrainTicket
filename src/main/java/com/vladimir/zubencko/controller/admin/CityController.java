@@ -24,16 +24,15 @@ public class CityController {
     private final CityService cityService;
     private final NeighborCityService neighborCityService;
     private final TrainWayService trainWayService;
-    private final TrainService trainService;
+    private List<NeighborCity> deletedNeighbors;
+    private List<Train> deletedTrains;
 
     @Autowired
     public CityController(CityService cityService, NeighborCityService neighborCityService,
-                          TrainWayService trainWayService, TrainService trainService) {
+                          TrainWayService trainWayService) {
         this.cityService = cityService;
         this.neighborCityService = neighborCityService;
         this.trainWayService = trainWayService;
-        this.trainService = trainService;
-
     }
 
     @GetMapping("home")
@@ -76,27 +75,9 @@ public class CityController {
     public String addCity(@RequestParam(value = "city", required = false) String cityName,
                           @RequestParam(value = "neighborCity") List<String> neighborCities,
                           RedirectAttributes redirectAttributes) {
-        int a=0;
-        a++;
-
-        if (!"".equals(cityName)) {
-            if (!cityService.existsByName(cityName)) {
-                if (neighborCities != null) {
-                    boolean result = neighborCityService.isEqual(neighborCities);
-                    if (result) {
-                        redirectAttributes.addAttribute("error", "Neighbor cities is equals");
-                        return "redirect:/admin/home";
-                    }
-                } else {
-                    redirectAttributes.addAttribute("error", "Neighbor cities is empty");
-                    return "redirect:/admin/home";
-                }
-            } else {
-                redirectAttributes.addAttribute("error", "City is exist");
-                return "redirect:/admin/home";
-            }
-        } else {
-            redirectAttributes.addAttribute("error", "City is empty");
+        String status =cityService.validCityAndNeighbor(cityName, neighborCities);
+        if (!"OK".equals(status)){
+            redirectAttributes.addAttribute("error", status);
             return "redirect:/admin/home";
         }
         City city = new City(cityName);
@@ -129,10 +110,10 @@ public class CityController {
             City city = cityService.searchByFullName(name);
             if (city != null) {
                 List<TrainWay> trainWays = trainWayService.searchByCity(city);
-                List<Train> trains = cityService.getCityLink(city,trainWays);
-                if (delete!=null||trains.isEmpty()){
-                    cityService.deleteCityLink(city,trainWays,trains);
-                }else {
+                List<Train> trains = cityService.getCityLink(city, trainWays);
+                if (delete != null || trains.isEmpty()) {
+                    cityService.deleteCityLink(city, trainWays, trains);
+                } else {
                     List<String> nameTrains = new ArrayList<>();
                     for (Train train : trains) {
                         nameTrains.add(train.getName());
@@ -148,27 +129,10 @@ public class CityController {
 
     @GetMapping("checkDelete")
     public ModelAndView checkDelete(@RequestParam(value = "city") String city,
-                                    @RequestParam(value = "nameTrains") List<String> trains){
-        ModelAndView modelAndView = new ModelAndView("deleteCity");
-        if (city!=null&&trains!=null){
-            if (!trains.isEmpty()){
-                List<Train> trains1 = new ArrayList<>();
-                for (String trainName : trains) {
-                    Train train = trainService.searchByFullName(trainName);
-                    if (train!=null){
-                        trains1.add(train);
-                    }
-                }
-
-                modelAndView.addObject("city", city);
-                modelAndView.addObject("trains", trains1);
-            }
-
-        }
-        return modelAndView;
-
+                                    @RequestParam(value = "nameTrains") List<String> trains) {
+        return cityService.prepareDate(city, trains,
+                "/admin/deleteCity?name="+city+"&delete=true", "delete");
     }
-
 
     @GetMapping("editCity")
     public String editCity(@RequestParam(value = "name") String name,
@@ -184,31 +148,11 @@ public class CityController {
                                @RequestParam(value = "cityOriginal") String cityOriginal,
                                @RequestParam(value = "neighborCityEdit") List<String> neighborCities,
                                RedirectAttributes redirectAttributes) {
-        if (!"".equals(cityName)) {
-            boolean equalsCity;
-            if (cityOriginal != null) {
-                if (cityName.equals(cityOriginal)) {
-                    equalsCity = false;
-                } else {
-                    equalsCity = cityService.existsByName(cityName);
-                }
-            } else {
-                return "redirect:/admin/home";
+        String status = cityService.validEditCityAndNeighbor(cityName,cityOriginal,neighborCities);
+        if (!"OK".equals(status)){
+            if (!"home".equals(status)){
+                redirectAttributes.addAttribute("errorEdit", status);
             }
-            if (!equalsCity) {
-                if (neighborCities != null) {
-                    String result = neighborCityService.checkNeighbors(neighborCities, cityName);
-                    if (!result.equals("OK")) {
-                        redirectAttributes.addAttribute("errorEdit", result);
-                        return "redirect:/admin/home";
-                    }
-                } else {
-                    redirectAttributes.addAttribute("errorEdit", "City is exist");
-                    return "redirect:/admin/home";
-                }
-            }
-        } else {
-            redirectAttributes.addAttribute("errorEdit", "City is empty");
             return "redirect:/admin/home";
         }
         City city1 = cityService.searchByFullName(cityOriginal);
@@ -218,6 +162,34 @@ public class CityController {
         }
         city1.setName(cityName);
         neighborCityService.saveEditNeighbors(city1, neighborCities);
+        deletedNeighbors = neighborCityService.deleteEditNeighbor(city1, neighborCities);
+        deletedTrains = neighborCityService.checkEditCityLink(deletedNeighbors, city1);
+        if (!deletedTrains.isEmpty()) {
+            redirectAttributes.addAttribute("city", cityName);
+            List<String> nameTrains = new ArrayList<>();
+            for (Train deletedTrain : deletedTrains) {
+                nameTrains.add(deletedTrain.getName());
+            }
+            redirectAttributes.addAttribute("city", cityName);
+            redirectAttributes.addAttribute("nameTrains", nameTrains);
+            return "redirect:/admin/checkEdit";
+        }
+        neighborCityService.delete(deletedNeighbors);
         return "redirect:/admin/home";
+    }
+
+    @GetMapping("checkEdit")
+    public ModelAndView checkEdit(@RequestParam(value = "city") String city,
+                                  @RequestParam(value = "nameTrains") List<String> trains) {
+        return cityService.prepareDate(city, trains, "/admin/deleteEditNeighbor?status=true", "edit");
+    }
+
+    @GetMapping("deleteEditNeighbor")
+    public String deleteEditNeighbor(@RequestParam(value = "status") String status) {
+        if (status != null) {
+            neighborCityService.deleteOldNeighbor(deletedNeighbors, deletedTrains);
+        }
+        return "redirect:/admin/home";
+
     }
 }
