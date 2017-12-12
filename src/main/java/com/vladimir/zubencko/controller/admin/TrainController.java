@@ -1,7 +1,6 @@
 package com.vladimir.zubencko.controller.admin;
 
 import com.vladimir.zubencko.domain.City;
-import com.vladimir.zubencko.domain.NeighborCity;
 import com.vladimir.zubencko.domain.Train;
 import com.vladimir.zubencko.domain.TrainWay;
 import com.vladimir.zubencko.service.CityService;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -173,7 +170,6 @@ public class TrainController {
             redirectAttributes.addAttribute("errorEdit", saver);
             return "redirect:/admin/train" ;
         }
-        trainWayService.deleteOldTrailWay(train, cities);
         return "redirect:/admin/train";
     }
 }

@@ -311,24 +311,11 @@ public class TrainWayServiceImpl implements TrainWayService {
             if (currentCity == null) {
                 return "Not correct data";
             }
-            boolean needSave = true;
-
-            for (TrainWay trainWay : train.getTrainWays()) {
-                if (currentCity.equals(trainWay.getCity())) {
-                    trainWay.setTrainDeparture(getTime(i, departureHour, departureMinute));
-                    trainWay.setTrainStoppingTime(getTime(i, stoppingHour, stoppingMinute));
-                    trainWay.setCost(cost.get(i));
-                    save(trainWay);
-                    needSave = false;
-                    break;
-                }
-            }
-            if (needSave) {
-                LocalTime departureTime = getTime(i, departureHour, departureMinute);
-                LocalTime stoppingTime = getTime(i, stoppingHour, stoppingMinute);
-                TrainWay trainWay1 = new TrainWay(train, currentCity, departureTime, stoppingTime, cost.get(i));
-                save(trainWay1);
-            }
+            delete(train.getTrainWays());
+            LocalTime departureTime = getTime(i, departureHour, departureMinute);
+            LocalTime stoppingTime = getTime(i, stoppingHour, stoppingMinute);
+            TrainWay trainWay1 = new TrainWay(train, currentCity, departureTime, stoppingTime, cost.get(i));
+            save(trainWay1);
         }
         return null;
     }

@@ -25,6 +25,7 @@ public class Train implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY,
             mappedBy = "train")
+    @OrderBy("id ASC")
     private List<TrainWay> trainWays;
 
     public Train(String name) {

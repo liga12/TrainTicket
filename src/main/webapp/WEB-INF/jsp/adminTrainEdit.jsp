@@ -22,7 +22,7 @@
             '    </div>\n' +
             '</div>\n' +
             '<c:forEach var="j" begin="0" end="1" varStatus="mainLoop">\n' +
-            '    <div class="row add-train">\n' +
+            '    <div class="row add-train edit-train">\n' +
             '        <div class="col-md-4">\n' +
             '            <c:choose><c:when test="${mainLoop.index==0}">\n' +
             '                    <h5>Departure</h5>\n' +

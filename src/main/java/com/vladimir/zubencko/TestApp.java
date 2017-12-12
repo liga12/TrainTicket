@@ -14,9 +14,9 @@ import java.util.List;
 
 public class TestApp {
 
-    public static void main(String[] args) {
-        System.out.println(LocalTime.now().getMinute());
-    }
+//    public static void main(String[] args) {
+//        System.out.println(LocalTime.now().getMinute());
+//    }
 
 
 }
