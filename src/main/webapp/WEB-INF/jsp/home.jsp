@@ -4,7 +4,7 @@
 <html>
 <head>
     <title>Home</title>
-    <link href="/static/css/city2.css" rel="stylesheet">
+    <link href="/static/css/station2.css" rel="stylesheet">
 </head>
 <body>
 <jsp:include page="header.jsp"/>

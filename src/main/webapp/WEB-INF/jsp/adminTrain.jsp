@@ -2,9 +2,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
-    <title>City</title>
+    <title>Station</title>
     <jsp:include page="headerAdmin.jsp"/>
-    <link href="../../static/css/city2.css" rel="stylesheet"/>
+    <link href="../../static/css/station2.css" rel="stylesheet"/>
     <script src="/static/js/jquery-3.1.1.min.js"></script>
 <body>
 <div class="container-fluid">

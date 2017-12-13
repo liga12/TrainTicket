@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @Log4j
-public class NeighborCity implements Serializable {
+public class NeighborStation implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,14 +20,14 @@ public class NeighborCity implements Serializable {
 
     @JoinColumn(name = "id_city", referencedColumnName = "id", nullable = false)
     @ManyToOne
-    private City city;
+    private Station station;
 
     @JoinColumn(name = "id_neighbor", referencedColumnName = "id", nullable = false)
     @ManyToOne
-    private City neighborCity;
+    private Station neighborStation;
 
-    public NeighborCity(City city, City neighborCity) {
-        this.city = city;
-        this.neighborCity = neighborCity;
+    public NeighborStation(Station station, Station neighborStation) {
+        this.station = station;
+        this.neighborStation = neighborStation;
     }
 }

@@ -3,7 +3,7 @@
 <html>
 <head>
     <title>Delete City</title>
-    <link href="/static/css/city2.css" rel="stylesheet"/>
+    <link href="/static/css/station2.css" rel="stylesheet"/>
 </head>
 <body>
 <jsp:include page="headerAdmin.jsp"/>
@@ -16,7 +16,7 @@
                 <h4>If you
                 <c:if test="${requestScope.status=='delete'}">remove</c:if>
                 <c:if test="${requestScope.status=='edit'}">change</c:if>
-                  the ${requestScope.city} you remove trains:</h4>
+                  the ${requestScope.station} you remove trains:</h4>
                 <h4> you remove trains:</h4>
                 <c:forEach items="${requestScope.trains}" var="train">
                     <h5>${train.getName()}</h5>

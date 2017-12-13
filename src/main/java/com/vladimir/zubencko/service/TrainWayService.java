@@ -1,6 +1,6 @@
 package com.vladimir.zubencko.service;
 
-import com.vladimir.zubencko.domain.City;
+import com.vladimir.zubencko.domain.Station;
 import com.vladimir.zubencko.domain.Train;
 import com.vladimir.zubencko.domain.TrainWay;
 
@@ -47,5 +47,5 @@ public interface TrainWayService {
 
     void deleteOldTrailWay(Train train, List<String> cities);
 
-    List<TrainWay> searchByCity(City city);
+    List<TrainWay> searchByStation(Station station);
 }

@@ -1,22 +1,22 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<link href="../../static/css/city2.css" rel="stylesheet"/>
-<c:set var="city" value="city"/>
+<link href="../../static/css/station2.css" rel="stylesheet"/>
+<c:set var="station" value="station"/>
 <c:set var="departure" value="departure"/>
 <c:set var="stopping" value="stopping"/>
 <script>
     function addTrainWay() {
         $(".add-train:last").after('<div class="row">\n' +
             '    <div class="col-md-8">\n' +
-            '        <select class="form-control" name="${city}">\n' +
+            '        <select class="form-control" name="${station}">\n' +
             '            <option>None</option>\n' +
-            '            <c:forEach items="${requestScope.cities}" var="sCities">\n' +
+            '            <c:forEach items="${requestScope.stations}" var="sCities">\n' +
             '                <option>${sCities.name}</option>\n' +
             '            </c:forEach>\n' +
             '        </select>\n' +
             '    </div>\n' +
             '    <div class="col-md-4">\n' +
-            '        <input class="form-control" type="text" placeholder="Cost" name="cost" value="0">\n' +
+            '        <input class="form-control" type="number" placeholder="Cost" name="cost" value="0">\n' +
             '    </div>\n' +
             '</div>\n' +
             '<c:forEach var="j" begin="0" end="1" varStatus="mainLoop">\n' +
@@ -59,15 +59,15 @@
     <div><input class="form-control" type="text" placeholder="Train" name="train"></div>
     <div class="row">
         <div class="col-md-8">
-            <select class="form-control" name="${city}">
+            <select class="form-control" name="${station}">
                 <option>None</option>
-                <c:forEach items="${requestScope.cities}" var="sCities">
+                <c:forEach items="${requestScope.stations}" var="sCities">
                     <option>${sCities.name}</option>
                 </c:forEach>
             </select>
         </div>
         <div class="col-md-4">
-            <input class="form-control" type="text" placeholder="Cost" name="cost" value="0">
+            <input class="form-control" type="number" placeholder="Cost" name="cost" value="0">
         </div>
     </div>
     <c:forEach var="j" begin="0" end="1" varStatus="mainLoop">

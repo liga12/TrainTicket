@@ -19,7 +19,7 @@ public class TrainWayServiceImpl implements TrainWayService {
     TrainService trainService;
 
     @Autowired
-    CityService cityService;
+    StationService stationService;
 
     @Override
     @Transactional
@@ -42,11 +42,11 @@ public class TrainWayServiceImpl implements TrainWayService {
     @Override
     public void saveTrainWay(Train train, List<String> cities, List<Integer> arrivalHour, List<Integer> arrivalMinute, List<Integer> stoppingHours, List<Integer> stoppingMinute, List<Integer> coast) {
         for (int i = 0; i < cities.size(); i++) {
-            String cityName = cities.get(i);
-            if (!"None".equals(cityName) && coast.get(i) != null) {
-                City city = cityService.searchByFullName(cityName);
-                if (city != null) {
-                    TrainWay trainWay = new TrainWay(train, city,
+            String stationName = cities.get(i);
+            if (!"None".equals(stationName) && coast.get(i) != null) {
+                Station station = stationService.searchByFullName(stationName);
+                if (station != null) {
+                    TrainWay trainWay = new TrainWay(train, station,
                             LocalTime.now().withHour(arrivalHour.get(i)).withMinute(arrivalMinute.get(i)),
                             LocalTime.now().withHour(stoppingHours.get(i)).withMinute(stoppingMinute.get(i)), coast.get(i));
                     save(trainWay);
@@ -116,7 +116,7 @@ public class TrainWayServiceImpl implements TrainWayService {
                 }
                 int cost = Integer.valueOf(currentCost);
                 if (cost < 0) {
-                    return new ArrayList<>();
+                    return null;
                 }
                 list.add(cost);
             }
@@ -136,23 +136,23 @@ public class TrainWayServiceImpl implements TrainWayService {
                 sumEmptyCities++;
             } else {
                 if (i != cities.size() - 1 && !cities.get(i + 1).equals("None")) {
-                    City city = cityService.searchByFullName(cities.get(i));
-                    if (city == null) {
-                        list.add("City not exist");
+                    Station station = stationService.searchByFullName(cities.get(i));
+                    if (station == null) {
+                        list.add("Station not exist");
                         return list;
                     }
-                    List<NeighborCity> neighborCities = city.getNeighborCities();
-                    City neighbor = cityService.searchByFullName(cities.get(i + 1));
+                    List<NeighborStation> neighborCities = station.getNeighborStations();
+                    Station neighbor = stationService.searchByFullName(cities.get(i + 1));
                     System.out.println(neighbor.getName());
-                    boolean existCity = false;
-                    for (NeighborCity neighborCity : neighborCities) {
-                        if (neighborCity.getNeighborCity().equals(neighbor)) {
-                            System.out.println(neighborCity.getNeighborCity().getName());
-                            existCity = true;
+                    boolean existStation = false;
+                    for (NeighborStation neighborStation : neighborCities) {
+                        if (neighborStation.getNeighborStation().equals(neighbor)) {
+                            System.out.println(neighborStation.getNeighborStation().getName());
+                            existStation = true;
                             break;
                         }
                     }
-                    if (!existCity) {
+                    if (!existStation) {
                         list.add("Not correct way");
                         return list;
                     }
@@ -171,13 +171,13 @@ public class TrainWayServiceImpl implements TrainWayService {
         for (int i = 0; i < cities.size(); i++) {
             if ("None".equals(cities.get(i))) {
                 if (!none) {
-                    return "City in the way is omitted";
+                    return "Station in the way is omitted";
                 }
                 noNone = false;
                 continue;
             } else {
                 if (!noNone) {
-                    return "City in the way is omitted";
+                    return "Station in the way is omitted";
                 }
                 none = true;
                 for (int j = 0; j < cities.size(); j++) {
@@ -185,7 +185,7 @@ public class TrainWayServiceImpl implements TrainWayService {
                         continue;
                     } else {
                         if (cities.get(i).equals(cities.get(j))) {
-                            return "City is equals";
+                            return "Station is equals";
                         }
                     }
                 }
@@ -303,18 +303,18 @@ public class TrainWayServiceImpl implements TrainWayService {
                               List<Integer> stoppingHour, List<Integer> stoppingMinute, List<Integer> cost,
                               Train train) {
         for (int i = 0; i < cities.size(); i++) {
-            String city = cities.get(i);
-            if ("None".equals(city)) {
+            String station = cities.get(i);
+            if ("None".equals(station)) {
                 continue;
             }
-            City currentCity = cityService.searchByFullName(city);
-            if (currentCity == null) {
+            Station currentStation = stationService.searchByFullName(station);
+            if (currentStation == null) {
                 return "Not correct data";
             }
             delete(train.getTrainWays());
             LocalTime departureTime = getTime(i, departureHour, departureMinute);
             LocalTime stoppingTime = getTime(i, stoppingHour, stoppingMinute);
-            TrainWay trainWay1 = new TrainWay(train, currentCity, departureTime, stoppingTime, cost.get(i));
+            TrainWay trainWay1 = new TrainWay(train, currentStation, departureTime, stoppingTime, cost.get(i));
             save(trainWay1);
         }
         return null;
@@ -325,9 +325,9 @@ public class TrainWayServiceImpl implements TrainWayService {
         for (TrainWay trainWay : train.getTrainWays()) {
             boolean needDelete = true;
             for (String s : cities) {
-                City city1 = cityService.searchByFullName(s);
-                if (city1 != null) {
-                    if (trainWay.getCity().equals(city1)) {
+                Station station1 = stationService.searchByFullName(s);
+                if (station1 != null) {
+                    if (trainWay.getStation().equals(station1)) {
                         needDelete = false;
                         break;
                     }
@@ -345,8 +345,8 @@ public class TrainWayServiceImpl implements TrainWayService {
     }
 
     @Override
-    public List<TrainWay> searchByCity(City city) {
-        return trainWayRepository.findByCity(city);
+    public List<TrainWay> searchByStation(Station station) {
+        return trainWayRepository.findByStation(station);
     }
 }
 

@@ -22,7 +22,7 @@
             <a class="navbar-brand" href="${pageContext.request.contextPath}/home">TrainTicket</a>
         </div>
         <ul class="nav navbar-nav">
-            <li><a href="/admin/home">City</a></li>
+            <li><a href="/admin/home">Station</a></li>
             <li><a href="/admin/train">Train</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">

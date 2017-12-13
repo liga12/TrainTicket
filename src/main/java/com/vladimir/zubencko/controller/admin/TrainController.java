@@ -1,9 +1,9 @@
 package com.vladimir.zubencko.controller.admin;
 
-import com.vladimir.zubencko.domain.City;
+import com.vladimir.zubencko.domain.Station;
 import com.vladimir.zubencko.domain.Train;
 import com.vladimir.zubencko.domain.TrainWay;
-import com.vladimir.zubencko.service.CityService;
+import com.vladimir.zubencko.service.StationService;
 import com.vladimir.zubencko.service.TrainService;
 import com.vladimir.zubencko.service.TrainWayService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +23,11 @@ public class TrainController {
 
     private final TrainService trainService;
     private final TrainWayService trainWayService;
-    private final CityService cityService;
+    private final StationService stationService;
 
     @Autowired
-    public TrainController(CityService cityService, TrainService trainService, TrainWayService trainWayService) {
-        this.cityService = cityService;
+    public TrainController(StationService stationService, TrainService trainService, TrainWayService trainWayService) {
+        this.stationService = stationService;
         this.trainService = trainService;
         this.trainWayService = trainWayService;
     }
@@ -39,9 +39,9 @@ public class TrainController {
                              @RequestParam(value = "trainName", required = false) String trainName,
                              @RequestParam(value = "errorEdit", required = false) String errorEdit) {
         ModelAndView modelAndView = new ModelAndView("adminTrain");
-        List<City> cities = cityService.getCities();
-        if (!cities.isEmpty()) {
-            modelAndView.addObject("cities", cities);
+        List<Station> stations = stationService.getStation();
+        if (!stations.isEmpty()) {
+            modelAndView.addObject("stations", stations);
             modelAndView.addObject("error", error);
         }
         if (searchTrains != null) {
@@ -70,14 +70,14 @@ public class TrainController {
 
     @PostMapping("addTrain")
     public String addTrain(@RequestParam(value = "train") String trainName,
-                           @RequestParam(value = "city") List<String> cities,
+                           @RequestParam(value = "station") List<String> stations,
                            @RequestParam(value = "departureHour") List<String> departureHours,
                            @RequestParam(value = "departureMinute") List<String> departureMinutes,
                            @RequestParam(value = "stoppingHour") List<String> stoppingHours,
                            @RequestParam(value = "stoppingMinute") List<String> stoppingMinutes,
                            @RequestParam(value = "cost") List<String> costs,
                            RedirectAttributes redirectAttributes) {
-        List<Object> result = trainWayService.checkTrainWay(trainName, cities, departureHours, departureMinutes,
+        List<Object> result = trainWayService.checkTrainWay(trainName, stations, departureHours, departureMinutes,
                 stoppingHours, stoppingMinutes, costs, true);
         if (result.size() == 1) {
             String error = (String) result.get(0);
@@ -91,12 +91,12 @@ public class TrainController {
         List<Integer> cost = (List<Integer>) result.get(4);
         Train train = new Train(trainName);
         trainService.save(train);
-        trainWayService.saveTrainWay(train, cities, departureHour, departureMinute, stoppingHour, stoppingMinute, cost);
+        trainWayService.saveTrainWay(train, stations, departureHour, departureMinute, stoppingHour, stoppingMinute, cost);
         return "redirect:/admin/train";
     }
 
     @PostMapping("searchTrain")
-    public String searchCity(@RequestParam(value = "train") String trainName,
+    public String searchStation(@RequestParam(value = "train") String trainName,
                              @RequestParam(value = "search", required = false) String search,
                              @RequestParam(value = "searchAll", required = false) String searchAll,
                              RedirectAttributes redirectAttributes) {
@@ -112,7 +112,7 @@ public class TrainController {
     }
 
     @GetMapping("deleteTrain")
-    public String deleteCity(@RequestParam(value = "name") String name) {
+    public String deleteStation(@RequestParam(value = "name") String name) {
         if (!"".equals(name)) {
             Train train = trainService.searchByFullName(name);
             if (train != null) {
@@ -123,7 +123,7 @@ public class TrainController {
     }
 
     @GetMapping("editTrain")
-    public String editCity(@RequestParam(value = "name") String name,
+    public String editStation(@RequestParam(value = "name") String name,
                            RedirectAttributes redirectAttributes) {
         if (name != null && !name.equals("")) {
             redirectAttributes.addAttribute("trainName", name);
@@ -134,7 +134,7 @@ public class TrainController {
     @PostMapping("saveEditTrainWay")
     public String saveEditTrain(@RequestParam(value = "train") String trainName,
                                 @RequestParam(value = "trainOriginal") String trainOriginal,
-                                @RequestParam(value = "city") List<String> cities,
+                                @RequestParam(value = "station") List<String> stations,
                                 @RequestParam(value = "departureHour") List<String> departureHours,
                                 @RequestParam(value = "departureMinute") List<String> departureMinutes,
                                 @RequestParam(value = "stoppingHour") List<String> stoppingHours,
@@ -145,7 +145,7 @@ public class TrainController {
             redirectAttributes.addAttribute("errorEdit", "Train is empty");
             return "redirect:/admin/train";
         }
-        List<Object> result = trainWayService.checkTrainWay(trainName, cities, departureHours, departureMinutes,
+        List<Object> result = trainWayService.checkTrainWay(trainName, stations, departureHours, departureMinutes,
                 stoppingHours, stoppingMinutes, costs, false);
         if (result.size() == 1) {
             String error = (String) result.get(0);
@@ -164,7 +164,7 @@ public class TrainController {
         }
         train.setName(trainName);
         trainService.save(train);
-        String saver = trainWayService.saveChanges(cities, departureHour,departureMinute,
+        String saver = trainWayService.saveChanges(stations, departureHour,departureMinute,
                 stoppingHour, stoppingMinute, cost,train);
         if (saver!=null){
             redirectAttributes.addAttribute("errorEdit", saver);

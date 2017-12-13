@@ -1,6 +1,6 @@
 package com.vladimir.zubencko;
 
-import com.vladimir.zubencko.domain.City;
+import com.vladimir.zubencko.domain.Station;
 import com.vladimir.zubencko.domain.Train;
 import com.vladimir.zubencko.domain.TrainWay;
 
@@ -15,37 +15,21 @@ import java.util.Set;
 
 public class TicketService {
 
-    private City startCity;
-    private City finishCity;
-    private List<City> cities;
-    private int peresadka;
-    private LocalDateTime dateTime;
-
-    public TicketService(City startCity, City finishCity, int peresadka) {
-        this.startCity = startCity;
-        this.finishCity = finishCity;
-        this.cities = cities;
-        this.peresadka = peresadka;
-        dateTime = LocalDateTime.now().withSecond(0);
-    }
-
-    private boolean val(City startCity, City finishCity) {
-        if (startCity.equals(finishCity)) {
-            System.out.println("odinakov");
+    private boolean validateStation(Station startStation, Station finishStation) {
+        if (startStation.equals(finishStation)) {
+            System.out.println("Source station and destination neighbor station is equal");
             return false;
         }
         return true;
     }
 
-    public Way test() throws CloneNotSupportedException, IOException, ClassNotFoundException {
+    public Way getWay(Station sourceStation, Station destinationStation, int transplant, LocalDateTime dateTime, int waitingTime) throws IOException, ClassNotFoundException {
         Way way = new Way();
-        if (val(startCity, finishCity)) {
+        if (validateStation(sourceStation, destinationStation)) {
             way.setWays(new ArrayList<>());
-            calculateFirstRouts(startCity, finishCity, way);
+            getFirstRouts(sourceStation, destinationStation, way, dateTime);
             while (!isFinished(way)) {
-                calculateWay(finishCity, way, peresadka);
-
-//                new Main().printWays(way);
+                getNextWay(destinationStation, way, transplant);
                 if (way.getWays().size() == 0) {
                     return null;
                 }
@@ -53,24 +37,25 @@ public class TicketService {
             if (way.getWays().size() == 0) {
                 return null;
             }
+        } else {
+            return null;
         }
         getCorrectDate(way);
-        deleteWay(way, 7);
+        deleteWay(way, waitingTime);
 
         return way;
     }
 
-    private List<Train> getTrainsCity(City city){
+    private List<Train> getTrainsCity(Station station) {
         List<Train> trains = new ArrayList<>();
-        for (TrainWay trainWay : city.getTrainWays()) {
+        for (TrainWay trainWay : station.getTrainWays()) {
             trains.add(trainWay.getTrain());
         }
         return trains;
     }
 
-
-    private Way calculateFirstRouts(City sourceCity, City destinationCity, Way mainWays) {
-        List<Train> currentCityTrains = getTrainsCity(sourceCity);
+    private Way getFirstRouts(Station sourceStation, Station destinationStation, Way mainWays, LocalDateTime dateTime) {
+        List<Train> currentCityTrains = getTrainsCity(sourceStation);
         if (currentCityTrains != null) {
             for (Train currentCityTrain : currentCityTrains) {
 
@@ -78,45 +63,55 @@ public class TicketService {
                 int indexCityInWayTrain = 0;
                 for (int i = 0; i < currentTrainCities.size(); i++) {
                     TrainWay currentTrainWay = currentTrainCities.get(i);
-
-                    if (currentTrainWay.getCity().equals(sourceCity)) {
+                    if (currentTrainWay.getStation().equals(sourceStation)) {
                         indexCityInWayTrain = i;
                         break;
                     }
                 }
-                Way currentWay = new Way();
-                if (currentTrainCities.size() - 1 > indexCityInWayTrain) {
-                    if (currentTrainCities.get(indexCityInWayTrain + 1).getCity().equals(destinationCity)) {
-                        currentWay.setFinishWay(true);
-                    }
-                    currentWay.setPeresadka(0);
-                    currentWay.setCoast(currentTrainCities.get(indexCityInWayTrain).getCost());
-                    currentWay.setVisitedCities(new ArrayList<>());
-                    currentWay.getVisitedCities().add(sourceCity);
-                    currentWay.getVisitedCities().add(currentTrainCities.get(indexCityInWayTrain + 1).getCity());
-                    currentWay.setWays(new ArrayList<>());
-                    List<Way> currentWays = currentWay.getWays();
-                    LocalTime currentCityTrainOtpr = currentTrainCities.get(indexCityInWayTrain).getTrainDeparture();
-                    LocalTime neighborCityTrainOtpr = currentTrainCities.get(indexCityInWayTrain + 1).getTrainDeparture();
-                    currentWays.add(
-                            new Way(currentCityTrain, sourceCity,
-                                    dateTime.withHour(currentCityTrainOtpr.getHour()).withMinute(currentCityTrainOtpr.getMinute()),
-                                    currentTrainCities.get(indexCityInWayTrain).getTrainStoppingTime(),
-                                    0));
-                    currentWays.add(
-                            new Way(currentCityTrain, currentTrainCities.get(indexCityInWayTrain + 1).getCity(),
-                                    dateTime.withHour(neighborCityTrainOtpr.getHour()).withMinute(currentCityTrainOtpr.getMinute()),
-                                    currentTrainCities.get(indexCityInWayTrain + 1).getTrainStoppingTime(),
-                                    0));
-                    mainWays.getWays().add(currentWay);
-                }
-
-
+                saveFirstWay(currentTrainCities, indexCityInWayTrain, currentCityTrain, mainWays, sourceStation, destinationStation, dateTime);
             }
         } else {
             return new Way();
         }
         return mainWays;
+    }
+
+    private void saveFirstWay(List<TrainWay> currentTrainCities, int indexCityInWayTrain, Train currentCityTrain,
+                              Way mainWays, Station sourceStation, Station destinationStation, LocalDateTime dateTime) {
+        Way currentWay = new Way();
+        if (currentTrainCities.size() - 1 > indexCityInWayTrain) {
+            if (currentTrainCities.get(indexCityInWayTrain + 1).getStation().equals(destinationStation)) {
+                currentWay.setFinishWay(true);
+            }
+            currentWay.setTransplant(0);
+            currentWay.setCost(currentTrainCities.get(indexCityInWayTrain).getCost());
+            currentWay.setVisitedCities(new ArrayList<>());
+            currentWay.getVisitedCities().add(sourceStation);
+            currentWay.getVisitedCities().add(currentTrainCities.get(indexCityInWayTrain + 1).getStation());
+            currentWay.setWays(new ArrayList<>());
+            List<Way> currentWays = currentWay.getWays();
+            LocalTime currentCityTrainDeparture = getTime(currentTrainCities, indexCityInWayTrain);
+            LocalTime neighborCityTrainDeparture = getTime(currentTrainCities, indexCityInWayTrain + 1);
+            Way waySourceCity = getCurrentWay(currentCityTrain, sourceStation, currentCityTrainDeparture,
+                    currentTrainCities, indexCityInWayTrain, dateTime);
+            Way wayNextCity = getCurrentWay(currentCityTrain, currentTrainCities.get(indexCityInWayTrain + 1).getStation(),
+                    neighborCityTrainDeparture, currentTrainCities, indexCityInWayTrain + 1, dateTime);
+            currentWays.add(waySourceCity);
+            currentWays.add(wayNextCity);
+            mainWays.getWays().add(currentWay);
+        }
+    }
+
+    private LocalTime getTime(List<TrainWay> currentTrainCities, int indexCityInWayTrain) {
+        return currentTrainCities.get(indexCityInWayTrain).getTrainDeparture();
+    }
+
+    private Way getCurrentWay(Train currentCityTrain, Station sourceStation, LocalTime TrainDeparture,
+                              List<TrainWay> currentTrainCities, int indexCityInWayTrain, LocalDateTime dateTime) {
+        return new Way(currentCityTrain, sourceStation,
+                dateTime.withHour(TrainDeparture.getHour()).withMinute(TrainDeparture.getMinute()),
+                currentTrainCities.get(indexCityInWayTrain).getTrainStoppingTime(),
+                0);
     }
 
     private boolean isFinished(Way mainWays) {
@@ -130,196 +125,246 @@ public class TicketService {
     }
 
 
-    private Way calculateWay(City destinationCity, Way mainWays, int per) throws IOException, ClassNotFoundException {
-        Set<Way> deleteWays = new LinkedHashSet<>();
+    private void getNextWay(Station destinationStation, Way mainWays, int transplant) throws IOException, ClassNotFoundException {
+        Set<Way> deletedWays = new LinkedHashSet<>();
         List<Way> newWays = new ArrayList<>();
         List<Way> ways = mainWays.getWays();
         for (int i = 0; i < ways.size(); i++) {
             Way currentWays = ways.get(i);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream ous = new ObjectOutputStream(baos);
-            //сохраняем состояние кота Васьки в поток и закрываем его(поток)
-            ous.writeObject(currentWays);
-            ous.close();
+            ByteArrayOutputStream baos = writeObject(currentWays);
             if (!currentWays.isFinishWay()) {
                 List<Way> currentMapWay = currentWays.getWays();
-                City currentCity = currentMapWay.get(currentMapWay.size() - 1).getCity();
-                List<Train> currentCityTrains = getTrainsCity(currentCity);
+                Station currentStation = currentMapWay.get(currentMapWay.size() - 1).getStation();
+                List<Train> currentCityTrains = getTrainsCity(currentStation);
                 int countTrains = 0;
                 if (currentCityTrains != null) {
                     for (int j = 0; j < currentCityTrains.size(); j++) {
-                        int peresadka = 0;
+                        int transplantCount = 0;
                         Train currentTrain = currentCityTrains.get(j);
-
                         int indexCityInWayTrain = 0;
                         for (int k = 0; k < currentTrain.getTrainWays().size(); k++) {
                             TrainWay currentTrainWay = currentTrain.getTrainWays().get(k);
-
-                            if (currentTrainWay.getCity().equals(currentCity)) {
+                            if (currentTrainWay.getStation().equals(currentStation)) {
                                 indexCityInWayTrain = k;
                                 break;
                             }
                         }
-
-
                         if (indexCityInWayTrain != currentTrain.getTrainWays().size() - 1) {
-                            City neighborCity = currentTrain.getTrainWays().get(indexCityInWayTrain + 1).getCity();
-
-                            if (currentWays.getVisitedCities().indexOf(neighborCity) != -1) {
+                            Station neighborStation = currentTrain.getTrainWays().get(indexCityInWayTrain + 1).getStation();
+                            if (currentWays.getVisitedCities().indexOf(neighborStation) != -1) {
                                 countTrains++;
-
                                 if (j > currentCityTrains.size() - 2) {
                                     if (countTrains == currentCityTrains.size()) {
-                                        deleteWays.add(ways.get(i));
+                                        deletedWays.add(ways.get(i));
                                     }
-
                                 }
                                 continue;
                             }
-                            if (!currentWays.getWays().get(currentWays.getWays().size() - 1).getTrain().equals(currentTrain)) {
-                                peresadka++;
-                            }
-                            if (ways.get(i).getPeresadka() + peresadka > per) {
-                                countTrains++;
-                            } else {
+                            Way way = readObject(baos);
+                            checkTransplant(currentWays, currentTrain, transplantCount, ways, i, countTrains,
+                                    indexCityInWayTrain, way, neighborStation, deletedWays, newWays, currentCityTrains,
+                                    destinationStation, transplant);
 
-                                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                                ObjectInputStream ois = new ObjectInputStream(bais);
-                                //создаём кота для опытов и инициализируем его состояние Васькиным
-                                Way way = (Way) ois.readObject();
-                                LocalTime currentCityTrainOtpr = currentTrain.getTrainWays().get(indexCityInWayTrain).getTrainDeparture();
-                                LocalTime neighborCityTrainOtpr = currentTrain.getTrainWays().get(indexCityInWayTrain + 1).getTrainStoppingTime();
-                                int lastElementIndex = way.getWays().size() - 1;
-//                                LocalDateTime localDateTime = null;
-//
-                                LocalDateTime localDateTime = LocalDateTime.of(
-                                        way.getWays().get(lastElementIndex).getOtprTime().getYear(),
-                                        way.getWays().get(lastElementIndex).getOtprTime().getMonthValue(),
-                                        way.getWays().get(lastElementIndex).getOtprTime().getDayOfMonth(),
-                                        neighborCityTrainOtpr.getHour(),
-                                        neighborCityTrainOtpr.getMinute());
-                                if (peresadka > 0) {
-
-                                    way.setCoast(currentWays.getCoast() + currentTrain.getTrainWays().get(indexCityInWayTrain).getCost());
-                                    way.setPeresadka(currentWays.getPeresadka() + 1);
-                                    Way lastWayInWays = currentWays.getWays().get(currentWays.getWays().size() - 1);
-                                    way.getVisitedCities().add(neighborCity);
-
-
-                                    way.getWays().add(new Way(currentTrain, lastWayInWays.getCity(),
-
-                                            LocalDateTime.of(
-                                                    way.getWays().get(lastElementIndex).getOtprTime().getYear(),
-                                                    way.getWays().get(lastElementIndex).getOtprTime().getMonthValue(),
-                                                    way.getWays().get(lastElementIndex).getOtprTime().getDayOfMonth(),
-                                                    currentCityTrainOtpr.getHour(),
-                                                    currentCityTrainOtpr.getMinute()),
-                                            currentTrain.getTrainWays().get(indexCityInWayTrain).getTrainStoppingTime(), 1));
-
-
-                                    way.getWays().add(new Way(currentTrain, neighborCity,
-
-                                            localDateTime,
-                                            currentTrain.getTrainWays().get(indexCityInWayTrain + 1).getTrainStoppingTime(), 0));
-                                } else {
-                                    way.setCoast(currentWays.getCoast() + currentTrain.getTrainWays().get(indexCityInWayTrain).getCost());
-                                    way.getWays().add(new Way(currentTrain, neighborCity,
-                                            localDateTime,
-                                            currentTrain.getTrainWays().get(indexCityInWayTrain + 1).getTrainStoppingTime(), 0));
-                                    way.getVisitedCities().add(neighborCity);
-                                }
-
-                                deleteWays.add(ways.get(i));
-                                if (way.getWays().get(way.getWays().size() - 1).getCity().equals(destinationCity)) {
-                                    way.setFinishWay(true);
-                                }
-                                newWays.add(way);
-                            }
-                            if (countTrains == currentCityTrains.size()) {
-                                ways.remove(currentWays);
-                            }
-
-
-                        }
-                        else {
-                            deleteWays.add(ways.get(i));
+                        } else {
+                            deletedWays.add(ways.get(i));
                         }
 
                     }
                 } else {
-                    deleteWays.add(ways.get(i));
+                    deletedWays.add(ways.get(i));
                 }
             }
         }
         mainWays.getWays().addAll(newWays);
-        mainWays.getWays().removeAll(deleteWays);
-        return mainWays;
+        mainWays.getWays().removeAll(deletedWays);
     }
 
-    public void getCorrectDate(Way mainWays) {
-        if (mainWays.getWays() != null)
-            for (int i = 0; i < mainWays.getWays().size(); i++) {
-                for (int j = 0; j < mainWays.getWays().get(i).getWays().size() - 1; j++) {
-                    if (mainWays.getWays().get(i).getWays().get(j).getOtprTime().toLocalTime().toSecondOfDay() > mainWays.getWays().get(i).getWays().get(j + 1).getOtprTime().toLocalTime().toSecondOfDay()) {
-                        mainWays.getWays().get(i).getWays().get(j + 1).setOtprTime(mainWays.getWays().get(i).getWays().get(j + 1).getOtprTime().plusDays(1));
-                        for (int k = 1; k < mainWays.getWays().get(i).getWays().size() - 1 - j; k++) {
-                            mainWays.getWays().get(i).getWays().get(k + j + 1).setOtprTime(mainWays.getWays().get(i).getWays().get(k + j + 1).getOtprTime().plusDays(1));
-                        }
+    private void checkTransplant(Way currentWays, Train currentTrain, int transplantCount, List<Way> ways,
+                                 int i, int countTrains, int indexCityInWayTrain, Way way, Station neighborStation,
+                                 Set<Way> deletedWays, List<Way> newWays, List<Train> currentCityTrains,
+                                 Station destinationStation, int transplant) {
+        if (!currentWays.getWays().get(currentWays.getWays().size() - 1).getTrain().equals(currentTrain)) {
+            transplantCount++;
+        }
+        if (ways.get(i).getTransplant() + transplantCount > transplant) {
+            countTrains++;
+        } else {
+
+            LocalTime currentCityTrainDeparture = getTime
+                    (currentTrain.getTrainWays(), indexCityInWayTrain);
+            LocalTime neighborCityTrainDeparture = getTime
+                    (currentTrain.getTrainWays(), indexCityInWayTrain + 1);
+            int lastElementIndex = way.getWays().size() - 1;
+            LocalDateTime localDateTime = getLocalDataTime
+                    (way, lastElementIndex, neighborCityTrainDeparture);
+            setWay(transplantCount, way, currentWays, currentTrain,
+                    indexCityInWayTrain, neighborStation, lastElementIndex,
+                    currentCityTrainDeparture, localDateTime);
+            deletedWays.add(ways.get(i));
+            if (way.getWays().get(way.getWays().size() - 1).getStation().equals(destinationStation)) {
+                way.setFinishWay(true);
+            }
+            newWays.add(way);
+        }
+        if (countTrains == currentCityTrains.size()) {
+            ways.remove(currentWays);
+        }
+    }
+
+
+    private LocalDateTime getLocalDataTime(Way way, int lastElementIndex, LocalTime neighborCityTrainDeparture) {
+        return LocalDateTime.of(
+                way.getWays().get(lastElementIndex).getDepartureTime().getYear(),
+                way.getWays().get(lastElementIndex).getDepartureTime().getMonthValue(),
+                way.getWays().get(lastElementIndex).getDepartureTime().getDayOfMonth(),
+                neighborCityTrainDeparture.getHour(),
+                neighborCityTrainDeparture.getMinute());
+    }
+
+    private void setWay(int transplantCount, Way way, Way currentWays, Train currentTrain,
+                        int indexCityInWayTrain, Station neighborStation, int lastElementIndex,
+                        LocalTime currentCityTrainDeparture, LocalDateTime localDateTime) {
+        if (transplantCount > 0) {
+            way.setCost(currentWays.getCost() + currentTrain.getTrainWays().get(indexCityInWayTrain).getCost());
+            way.setTransplant(currentWays.getTransplant() + 1);
+            Way lastWayInWays = currentWays.getWays().get(currentWays.getWays().size() - 1);
+            way.getVisitedCities().add(neighborStation);
+            way.getWays().add(new Way(currentTrain, lastWayInWays.getStation(),
+                    LocalDateTime.of(
+                            way.getWays().get(lastElementIndex).getDepartureTime().getYear(),
+                            way.getWays().get(lastElementIndex).getDepartureTime().getMonthValue(),
+                            way.getWays().get(lastElementIndex).getDepartureTime().getDayOfMonth(),
+                            currentCityTrainDeparture.getHour(),
+                            currentCityTrainDeparture.getMinute()),
+                    currentTrain.getTrainWays().get(indexCityInWayTrain).getTrainStoppingTime(), 1));
+            way.getWays().add(new Way(currentTrain, neighborStation,
+
+                    localDateTime,
+                    currentTrain.getTrainWays().get(indexCityInWayTrain + 1).getTrainStoppingTime(), 0));
+        } else {
+            way.setCost(currentWays.getCost() + currentTrain.getTrainWays().get(indexCityInWayTrain).getCost());
+            way.getWays().add(new Way(currentTrain, neighborStation,
+                    localDateTime,
+                    currentTrain.getTrainWays().get(indexCityInWayTrain + 1).getTrainStoppingTime(), 0));
+            way.getVisitedCities().add(neighborStation);
+        }
+    }
+
+    private ByteArrayOutputStream writeObject(Way currentWays) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream ous = new ObjectOutputStream(baos);
+        ous.writeObject(currentWays);
+        ous.close();
+        return baos;
+    }
+
+    private Way readObject(ByteArrayOutputStream baos) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        return (Way) ois.readObject();
+    }
+
+    private void getCorrectDate(Way mainWays) {
+        List<Way> ways = mainWays.getWays();
+        if (ways != null)
+            for (Way way : ways) {
+                List<Way> currentWayWays = way.getWays();
+                for (int j = 0; j < currentWayWays.size() - 1; j++) {
+                    Way currentTrainWay = currentWayWays.get(j);
+                    Way nextTrainWay = currentWayWays.get(j + 1);
+                    int currentTrainDepartureToSecond = getSecondsOfDay(currentTrainWay);
+                    int nextTrainDepartureToSecond = getSecondsOfDay(nextTrainWay);
+                    if (currentTrainDepartureToSecond > nextTrainDepartureToSecond) {
+                        addOneDayToNextWays(nextTrainWay, currentWayWays, j);
                     }
                 }
             }
     }
 
-    public void deleteWay(Way mainWays, int timeOzidaniy) {
+    private void addOneDayToNextWays(Way nextTrainWay, List<Way> currentWayWays, int currentWayWaysIndex) {
+        nextTrainWay.setDepartureTime(nextTrainWay.getDepartureTime().plusDays(1));
+        for (int k = 1; k < currentWayWays.size() - 1 - currentWayWaysIndex; k++) {
+            Way nextWayForNextWay = currentWayWays.get(k + currentWayWaysIndex + 1);
+            nextWayForNextWay.setDepartureTime(nextWayForNextWay.getDepartureTime().plusDays(1));
+        }
+    }
+
+    private int getSecondsOfDay(Way way) {
+        return way.getDepartureTime().toLocalTime().toSecondOfDay();
+    }
+
+    private void deleteWay(Way mainWays, int waitingTimeTrain) {
         List<Way> deleteObjects = new ArrayList<>();
-        List<Integer> k = new ArrayList<>();
+        List<Way> mainWayWays = mainWays.getWays();
         if (mainWays.getWays() != null) {
             for (int i = 0; i < mainWays.getWays().size(); i++) {
-                for (int j = 0; j < mainWays.getWays().get(i).getWays().size() - 2; j++) {
-                    if (!mainWays.getWays().get(i).getWays().get(j).getTrain().getName().equals(mainWays.getWays().get(i).getWays().get(j + 1).getTrain().getName())) {
-                        if (mainWays.getWays().get(i).getWays().get(j).getOtprTime().getDayOfMonth() < mainWays.getWays().get(i).getWays().get(j + 1).getOtprTime().getDayOfMonth()) {
-//                        deleteObjects.add(mainWays.getWays().get(i));
-                            if (mainWays.getWays().get(i).getWays().get(j).getOtprTime().plusHours(timeOzidaniy).getDayOfMonth()
-                                    != mainWays.getWays().get(i).getWays().get(j + 1).getOtprTime().getDayOfMonth()) {
-                                deleteObjects.add(mainWays.getWays().get(i));
-
-                            } else {
-                                if (mainWays.getWays().get(i).getWays().get(j).getOtprTime().plusHours(timeOzidaniy).toLocalTime().toSecondOfDay()
-                                        <= mainWays.getWays().get(i).getWays().get(j + 1).getOtprTime().toLocalTime().toSecondOfDay()) {
-                                    deleteObjects.add(mainWays.getWays().get(i));
-                                }
-                            }
-                        } else {
-                            int maxTime;
-                            if (LocalTime.of(23, 59).toSecondOfDay()
-                                    - mainWays.getWays().get(i).getWays().get(j).getOtprTime().plusMinutes(1).toLocalTime().toSecondOfDay()
-                                    >= LocalTime.of(timeOzidaniy, 0).toSecondOfDay()) {
-                                maxTime = mainWays.getWays().get(i).getWays().get(j).getOtprTime().plusMinutes(1).plusHours(timeOzidaniy).toLocalTime().toSecondOfDay();
-                            } else {
-                                maxTime = LocalTime.of(23, 59).toSecondOfDay();
-                            }
-
-                            if (mainWays.getWays().get(i).getWays().get(j).getOtprTime().minusMinutes(1).toLocalTime().toSecondOfDay()
-                                    >= mainWays.getWays().get(i).getWays().get(j + 1).getOtprTime().toLocalTime().toSecondOfDay()
-                                    || mainWays.getWays().get(i).getWays().get(j + 1).getOtprTime().toLocalTime().toSecondOfDay()
-                                    >= maxTime) {
-                                deleteObjects.add(mainWays.getWays().get(i));
-
-                            }
-                        }
-                    }
+                List<Way> ways = mainWays.getWays().get(i).getWays();
+                for (int j = 0; j < ways.size() - 2; j++) {
+                    deleteWayNonQualifyingCondition(ways, j, i, mainWayWays, waitingTimeTrain, deleteObjects);
                 }
             }
             mainWays.getWays().removeAll(deleteObjects);
         }
     }
 
-    public LocalTime getLocalTime(int time){
-        int hour = time/3600;
-        int minute = (time-hour)/60;
-        LocalTime localTime = LocalTime.now().withHour(hour).withMinute(minute).withSecond(0).withNano(0);
-        return localTime;
+    private void deleteWayNonQualifyingCondition(List<Way> ways, int indexWatOnTrainWay, int indexCurrentWay,
+                                                 List<Way> mainWayWays, int waitingTimeTrain, List<Way> deleteObjects) {
+        Way currentTrainWay = ways.get(indexWatOnTrainWay);
+        Way nextTrainWay = ways.get(indexWatOnTrainWay + 1);
+        Way currentWay = mainWayWays.get(indexCurrentWay);
+        if (!currentTrainWay.getTrain().getName().equals(nextTrainWay.getTrain().getName())) {
+            LocalDateTime currentTrainWayDeparture = currentTrainWay.getDepartureTime();
+            LocalDateTime nextTrainWayDeparture = nextTrainWay.getDepartureTime();
+            if (currentTrainWayDeparture.getDayOfMonth() < nextTrainWayDeparture.getDayOfMonth()) {
+                checkDate(currentTrainWayDeparture, waitingTimeTrain, nextTrainWayDeparture, deleteObjects, currentWay);
+            } else {
+                checkTime(currentTrainWayDeparture, waitingTimeTrain, nextTrainWayDeparture, deleteObjects,
+                        currentWay, currentTrainWay);
+            }
+        }
+    }
 
+    private void checkTime(LocalDateTime currentTrainWayDeparture, int waitingTimeTrain,
+                           LocalDateTime nextTrainWayDeparture, List<Way> deleteObjects,
+                           Way currentWay, Way currentTrainWay) {
+        int maxTime;
+        int time = LocalTime.of(23, 59).toSecondOfDay();
+        int currentTrainWayStoppingHour = currentTrainWay.getStoppingTime().getHour();
+        int currentTrainWayStoppingMinute = currentTrainWay.getStoppingTime().getMinute();
+        LocalDateTime time2 = currentTrainWayDeparture.plusMinutes(1).minusHours(currentTrainWayStoppingHour).
+                minusMinutes(currentTrainWayStoppingMinute);
+        LocalDateTime maxTimeDepartureNextTrain = currentTrainWayDeparture.plusMinutes(1).plusHours(waitingTimeTrain).
+                minusHours(currentTrainWayStoppingHour).minusMinutes(currentTrainWayStoppingMinute);
+        if (time - getSecondsOfDay(time2)
+                >= LocalTime.of(waitingTimeTrain, 0).toSecondOfDay()) {
+            maxTime = getSecondsOfDay(maxTimeDepartureNextTrain);
+        } else {
+            maxTime = time;
+        }
+        if (getSecondsOfDay(currentTrainWayDeparture.minusHours(currentTrainWayStoppingHour).minusMinutes(currentTrainWayStoppingMinute + 1))
+                >= getSecondsOfDay(nextTrainWayDeparture)
+                || getSecondsOfDay(nextTrainWayDeparture)
+                >= maxTime) {
+            deleteObjects.add(currentWay);
+        }
+    }
+
+    private void checkDate(LocalDateTime currentTrainWayDeparture, int waitingTimeTrain,
+                           LocalDateTime nextTrainWayDeparture, List<Way> deleteObjects, Way currentWay) {
+        if (currentTrainWayDeparture.plusHours(waitingTimeTrain).getDayOfMonth()
+                != nextTrainWayDeparture.getDayOfMonth()) {
+            deleteObjects.add(currentWay);
+
+        } else {
+            if (getSecondsOfDay(currentTrainWayDeparture.plusHours(waitingTimeTrain))
+                    <= getSecondsOfDay(nextTrainWayDeparture)) {
+                deleteObjects.add(currentWay);
+            }
+        }
+    }
+
+    private int getSecondsOfDay(LocalDateTime time) {
+        return time.toLocalTime().toSecondOfDay();
     }
 
     public void printWays(Way way) {
@@ -329,20 +374,18 @@ public class TicketService {
             if (ways != null) {
 
                 for (Way way1 : ways) {
-                    System.out.print(count + " finish = " + way1.isFinishWay() + " per = " + way1.getPeresadka());
+                    System.out.print(count + " finish = " + way1.isFinishWay() + " per = " + way1.getTransplant());
                     System.out.print(" cities " + way1.getVisitedCities().size() + " =");
-                    for (City city : way1.getVisitedCities()) {
-                        System.out.print(city.getName() + ",");
+                    for (Station station : way1.getVisitedCities()) {
+                        System.out.print(station.getName() + ",");
                     }
-
-                    System.out.print(" coast = " + way1.getCoast());
+                    System.out.print(" cost = " + way1.getCost());
                     System.out.println();
                     for (Way way2 : way1.getWays()) {
-                        System.out.println(way2.getPeresadka() + "." + way2.getTrain().getName() + "." + way2.getCity().getName() + ".[" + way2.getOtprTime().format(DateTimeFormatter.ofPattern("dd.MM.yy HH:mm:ss")) + "][" + way2.getStopTime().format(DateTimeFormatter.ofPattern("HH:mm")) + "] ->");
+                        System.out.println(way2.getTransplant() + "." + way2.getTrain().getName() + "." + way2.getStation().getName() + ".[" + way2.getDepartureTime().format(DateTimeFormatter.ofPattern("dd.MM.yy HH:mm:ss")) + "][" + way2.getStoppingTime().format(DateTimeFormatter.ofPattern("HH:mm")) + "] ->");
                     }
                     System.out.println();
                     count++;
-//                    System.out.println("co  = " + count);
                 }
             }
         } else {

@@ -56,7 +56,7 @@ h4, h5{
     border-radius: inherit;
 }
 
-.add-city{
+.add-station{
     padding: inherit;
 }
 
@@ -65,7 +65,7 @@ h4, h5{
     border: solid 1px gray;
 }
 
-.search-city-name{
+.search-station-name{
     text-align: center;
     text-align-last:center;
     background: white;

@@ -1,13 +1,11 @@
 package com.vladimir.zubencko.service;
 
-import com.vladimir.zubencko.domain.City;
 import com.vladimir.zubencko.domain.Train;
 import com.vladimir.zubencko.domain.TrainRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

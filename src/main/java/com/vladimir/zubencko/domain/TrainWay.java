@@ -33,17 +33,17 @@ public class TrainWay implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "city_id", referencedColumnName = "id", nullable = false)
-    private City city;
+    private Station station;
 
     @ManyToOne
     @JoinColumn(name = "id_train", referencedColumnName = "id", nullable = false)
     private Train train;
 
-    public TrainWay(Train train, City city, LocalTime trainDeparture, LocalTime trainStoppingTime, int cost ) {
+    public TrainWay(Train train, Station station, LocalTime trainDeparture, LocalTime trainStoppingTime, int cost ) {
         this.trainDeparture = trainDeparture;
         this.trainStoppingTime = trainStoppingTime;
         this.cost = cost;
-        this.city = city;
+        this.station = station;
         this.train = train;
     }
 }

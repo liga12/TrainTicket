@@ -1,6 +1,6 @@
 package com.vladimir.zubencko;
 
-import com.vladimir.zubencko.domain.City;
+import com.vladimir.zubencko.domain.Station;
 import com.vladimir.zubencko.domain.Train;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,21 +19,21 @@ import java.util.List;
 public class Way implements Serializable {
 
     private Train train;
-    private City city;
-    private int peresadka;
+    private Station station;
+    private int transplant;
     private List<Way> ways;
     private boolean finishWay;
-    private int coast;
-    private List<City> visitedCities;
-    private LocalDateTime otprTime;
-    private LocalTime stopTime;
+    private int cost;
+    private List<Station> visitedCities;
+    private LocalDateTime departureTime;
+    private LocalTime stoppingTime;
 
-    public Way(Train train, City city, LocalDateTime otprTime, LocalTime stopTime, int peresadka) {
+    public Way(Train train, Station station, LocalDateTime departureTime, LocalTime stoppingTime, int transplant) {
         this.train = train;
-        this.city = city;
-        this.otprTime = otprTime;
-        this.stopTime = stopTime;
-        this.peresadka = peresadka;
+        this.station = station;
+        this.departureTime = departureTime;
+        this.stoppingTime = stoppingTime;
+        this.transplant = transplant;
     }
 
 

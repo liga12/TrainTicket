@@ -3,22 +3,22 @@
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <c:set var="trainWayEdit" value="trainWayEdit"/>
-<c:set var="city" value="city"/>
+<c:set var="station" value="station"/>
 <c:set var="departure" value="departure"/>
 <c:set var="stopping" value="stopping"/>
 <script>
-    function addSelectEditCity() {
+    function addSelectEditTrain() {
         $(".edit-train:last").after('<div class="row">\n' +
             '    <div class="col-md-8">\n' +
-            '        <select class="form-control" name="${city}">\n' +
+            '        <select class="form-control" name="${station}">\n' +
             '            <option>None</option>\n' +
-            '            <c:forEach items="${requestScope.cities}" var="sCities">\n' +
+            '            <c:forEach items="${requestScope.stations}" var="sCities">\n' +
             '                <option>${sCities.name}</option>\n' +
             '            </c:forEach>\n' +
             '        </select>\n' +
             '    </div>\n' +
             '    <div class="col-md-4">\n' +
-            '        <input class="form-control" type="text" placeholder="Cost" name="cost" value="0">\n' +
+            '        <input class="form-control" type="number" placeholder="Cost" name="cost" value="0">\n' +
             '    </div>\n' +
             '</div>\n' +
             '<c:forEach var="j" begin="0" end="1" varStatus="mainLoop">\n' +
@@ -57,21 +57,21 @@
         <h4><c:out value="${requestScope.errorEdit}"/></h4>
     </div>
     <h4>Edit Train</h4>
-    <input class="form-control search-city-name" type="text" name="train" value="${requestScope.trainName}">
+    <input class="form-control search-station-name" type="text" name="train" value="${requestScope.trainName}">
 
     <c:forEach items="${requestScope.trainWays}" var="trainWays" varStatus="loop">
         <div class="row">
             <div class="col-md-8">
-                <select class="form-control" name="${city}">
-                    <option>${trainWays.getCity().getName()}</option>
+                <select class="form-control" name="${station}">
+                    <option>${trainWays.getStation().getName()}</option>
                     <option>None</option>
-                    <c:forEach items="${requestScope.cities}" var="sCities">
+                    <c:forEach items="${requestScope.stations}" var="sCities">
                         <option>${sCities.name}</option>
                     </c:forEach>
                 </select>
             </div>
             <div class="col-md-4">
-                <input class="form-control" type="text" placeholder="Cost" name="cost" value="${trainWays.getCost()}">
+                <input class="form-control" type="number" placeholder="Cost" name="cost" value="${trainWays.getCost()}">
             </div>
         </div>
         <c:forEach var="j" begin="0" end="1" varStatus="mainLoop">
@@ -129,7 +129,7 @@
     <c:if test="${fn:length(requestScope.trainWays)<1}">
         <div class="row">
             <div class="col-md-8">
-                <select class="form-control" name="${city}">
+                <select class="form-control" name="${station}">
                     <option>None</option>
                     <c:forEach items="${requestScope.cities}" var="sCities">
                         <option>${sCities.name}</option>
@@ -176,7 +176,7 @@
             </div>
         </c:forEach>
     </c:if>
-    <input class="form-control button-option" type="button" name="save" value="Add" onclick="addSelectEditCity()">
+    <input class="form-control button-option" type="button" name="save" value="Add" onclick="addSelectEditTrain()">
     <input class="form-control button-main" type="submit" name="save" value="Save">
     <input hidden type="text" name="trainOriginal" value="${requestScope.trainName}">
 </form>
