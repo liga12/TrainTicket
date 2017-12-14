@@ -24,6 +24,7 @@
         <ul class="nav navbar-nav">
             <li><a href="/admin/home">Station</a></li>
             <li><a href="/admin/train">Train</a></li>
+            <li><a href="/home">Home</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
             <li ><a href="${pageContext.request.contextPath}/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>

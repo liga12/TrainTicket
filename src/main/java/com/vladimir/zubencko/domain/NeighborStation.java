@@ -7,7 +7,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "neighbor_city")
+@Table(name = "station_neighbor")
 @Data
 @NoArgsConstructor
 @Log4j

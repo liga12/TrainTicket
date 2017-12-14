@@ -19,7 +19,8 @@
                   the ${requestScope.station} you remove trains:</h4>
                 <h4> you remove trains:</h4>
                 <c:forEach items="${requestScope.trains}" var="train">
-                    <h5>${train.getName()}</h5>
+                <a  href="/admin/editTrain?name=${train.getName()}">
+                    <input class="button-main" type="button" value="${train.getName()}">
                 </c:forEach>
             </div>
             <a class="col-md-6" href="/admin/home">

@@ -1,0 +1,1 @@
+INSERT INTO tt5.user (id, role, login, password) VALUES (1, 'ROLE_ADMIN', '11', 'ecfd942640fa510e3ec8d5656443b098');

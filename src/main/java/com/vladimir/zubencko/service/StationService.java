@@ -1,10 +1,13 @@
 package com.vladimir.zubencko.service;
 
+import com.vladimir.zubencko.Seacher;
 import com.vladimir.zubencko.domain.Station;
 import com.vladimir.zubencko.domain.Train;
 import com.vladimir.zubencko.domain.TrainWay;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public interface StationService {
@@ -31,4 +34,14 @@ public interface StationService {
     String validStationAndNeighbor(String stationName, List<String> neighborCities);
 
     String validEditStationAndNeighbor(String stationName, String stationOriginal, List<String> neighborCities);
+
+    Station validStation(String station);
+
+    Integer validTransplant(String transplant, int start, int finish);
+
+    LocalDateTime validDateTime(String dataTime);
+
+    Seacher validData(String valueTransplant, String waitingOnTransplant, String sourceStation,
+                      String destinationStation, String sourceDateTime, String destinationDateTime);
+
 }

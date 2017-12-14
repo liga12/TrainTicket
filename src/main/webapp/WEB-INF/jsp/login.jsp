@@ -6,7 +6,7 @@
 
     <link rel='stylesheet prefetch' href='http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css'>
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 
 </head>
 <body>

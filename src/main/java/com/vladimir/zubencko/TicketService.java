@@ -23,11 +23,11 @@ public class TicketService {
         return true;
     }
 
-    public Way getWay(Station sourceStation, Station destinationStation, int transplant, LocalDateTime dateTime, int waitingTime) throws IOException, ClassNotFoundException {
+    public Way getWay(Station sourceStation, Station destinationStation, int transplant, LocalDateTime sourceDate,LocalDateTime destinationDate, int waitingTime) throws IOException, ClassNotFoundException {
         Way way = new Way();
         if (validateStation(sourceStation, destinationStation)) {
             way.setWays(new ArrayList<>());
-            getFirstRouts(sourceStation, destinationStation, way, dateTime);
+            getFirstRouts(sourceStation, destinationStation, way, sourceDate);
             while (!isFinished(way)) {
                 getNextWay(destinationStation, way, transplant);
                 if (way.getWays().size() == 0) {
@@ -42,8 +42,31 @@ public class TicketService {
         }
         getCorrectDate(way);
         deleteWay(way, waitingTime);
+        deleteWayNotSuitableArrivalTime(way, destinationDate);
 
         return way;
+    }
+
+    private void deleteWayNotSuitableArrivalTime(Way way, LocalDateTime destinationDate){
+        List<Way> deletedWays = new ArrayList<>();
+        for (Way way1 : way.getWays()) {
+            Way lastWay = way1.getWays().get(way1.getWays().size() - 1);
+            if (lastWay.getDepartureTime().toLocalDate().toEpochDay()>destinationDate.toLocalDate().toEpochDay()){
+                deletedWays.add(way1);
+            }else{
+                if (lastWay.getDepartureTime().toLocalDate().toEpochDay()==destinationDate.toLocalDate().toEpochDay()){
+                    LocalTime time = lastWay.getDepartureTime().toLocalTime();
+                    if (time.minusHours(lastWay.getStoppingTime().getHour()).
+                            minusMinutes(lastWay.getStoppingTime().getMinute()).toSecondOfDay()
+                            >destinationDate.toLocalTime().toSecondOfDay()){
+                        deletedWays.add(way1);
+                    }
+                }
+            }
+        }
+        for (Way deletedWay : deletedWays) {
+            way.getWays().remove(deletedWay);
+        }
     }
 
     private List<Train> getTrainsCity(Station station) {
@@ -54,21 +77,27 @@ public class TicketService {
         return trains;
     }
 
-    private Way getFirstRouts(Station sourceStation, Station destinationStation, Way mainWays, LocalDateTime dateTime) {
+    private Way getFirstRouts(Station sourceStation, Station destinationStation, Way mainWays, LocalDateTime sourceDate) {
         List<Train> currentCityTrains = getTrainsCity(sourceStation);
         if (currentCityTrains != null) {
             for (Train currentCityTrain : currentCityTrains) {
 
                 List<TrainWay> currentTrainCities = currentCityTrain.getTrainWays();
                 int indexCityInWayTrain = 0;
+                TrainWay currentTrainWay = null;
                 for (int i = 0; i < currentTrainCities.size(); i++) {
-                    TrainWay currentTrainWay = currentTrainCities.get(i);
+                     currentTrainWay = currentTrainCities.get(i);
                     if (currentTrainWay.getStation().equals(sourceStation)) {
                         indexCityInWayTrain = i;
                         break;
                     }
                 }
-                saveFirstWay(currentTrainCities, indexCityInWayTrain, currentCityTrain, mainWays, sourceStation, destinationStation, dateTime);
+                if (currentTrainWay!=null){
+                    if (currentTrainWay.getTrainDeparture().toSecondOfDay()>=sourceDate.toLocalTime().toSecondOfDay()){
+                        saveFirstWay(currentTrainCities, indexCityInWayTrain, currentCityTrain, mainWays, sourceStation, destinationStation, sourceDate);
+                    }
+                }
+
             }
         } else {
             return new Way();
@@ -77,7 +106,7 @@ public class TicketService {
     }
 
     private void saveFirstWay(List<TrainWay> currentTrainCities, int indexCityInWayTrain, Train currentCityTrain,
-                              Way mainWays, Station sourceStation, Station destinationStation, LocalDateTime dateTime) {
+                              Way mainWays, Station sourceStation, Station destinationStation, LocalDateTime sourceDate) {
         Way currentWay = new Way();
         if (currentTrainCities.size() - 1 > indexCityInWayTrain) {
             if (currentTrainCities.get(indexCityInWayTrain + 1).getStation().equals(destinationStation)) {
@@ -93,9 +122,9 @@ public class TicketService {
             LocalTime currentCityTrainDeparture = getTime(currentTrainCities, indexCityInWayTrain);
             LocalTime neighborCityTrainDeparture = getTime(currentTrainCities, indexCityInWayTrain + 1);
             Way waySourceCity = getCurrentWay(currentCityTrain, sourceStation, currentCityTrainDeparture,
-                    currentTrainCities, indexCityInWayTrain, dateTime);
+                    currentTrainCities, indexCityInWayTrain, sourceDate);
             Way wayNextCity = getCurrentWay(currentCityTrain, currentTrainCities.get(indexCityInWayTrain + 1).getStation(),
-                    neighborCityTrainDeparture, currentTrainCities, indexCityInWayTrain + 1, dateTime);
+                    neighborCityTrainDeparture, currentTrainCities, indexCityInWayTrain + 1, sourceDate);
             currentWays.add(waySourceCity);
             currentWays.add(wayNextCity);
             mainWays.getWays().add(currentWay);
@@ -369,7 +398,7 @@ public class TicketService {
 
     public void printWays(Way way) {
         int count = 1;
-        if (way != null) {
+        if (way != null&&!way.getWays().isEmpty()) {
             List<Way> ways = way.getWays();
             if (ways != null) {
 
